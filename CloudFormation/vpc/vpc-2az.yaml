@@ -1,0 +1,386 @@
+---
+# Copyright 2019 gbazack
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for deploying 1 Custom VPC consisted of 2 availability zones and 4 subnets'
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: 'VPC parameters'
+      Parameters:
+      - subnetcidrBlock1
+      - subnetcidrBlock2
+      - subnetcidrBlock3
+      - subnetcidrBlock4
+Parameters:      
+  subnetcidrBlock1:
+    Description: 'CidrBlock of subnets - 10.4.subnetcidrBlock1.0/20'
+    Type: Number
+    Default: 0
+    AllowedValues:
+      - 0
+      - 16
+  subnetcidrBlock2:
+    Description: 'CidrBlock of subnets - 10.4.subnetcidrBlock2.0/20'
+    Type: Number
+    Default: 32
+    AllowedValues:
+      - 32
+      - 48
+  subnetcidrBlock3:
+    Description: 'CidrBlock of subnets - 10.4.subnetcidrBlock3.0/20'
+    Type: Number
+    Default: 64
+    AllowedValues:
+      - 64
+      - 80
+  subnetcidrBlock4:
+    Description: 'CidrBlock of subnets - 10.4.subnetcidrBlock4.0/20'
+    Type: Number
+    Default: 96
+    AllowedValues:
+      - 96
+      - 112
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: '10.4.0.0/16'
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: 'default'
+      Tags:
+        - Key: 'Name'
+          Value: 'vpc-2az'
+#Internet Gateway
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: 'Name'
+          Value: 'Igw-vpc-2az'
+#VPC Gateway Attachment
+  GatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId:
+        Ref: VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+#Creation of Subnets
+  PublicSubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: !Sub '10.4.${subnetcidrBlock1}.0/20'
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs
+          Ref: 'AWS::Region'
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: 'Name'
+          Value: 'PublicSubnetA'
+  PrivateSubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: !Sub '10.4.${subnetcidrBlock2}.0/20'
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs
+          Ref: 'AWS::Region'
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: 'Name'
+          Value: 'PrivateSubnetA'
+  PublicSubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: !Sub '10.4.${subnetcidrBlock3}.0/20'
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs
+          Ref: 'AWS::Region'
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: 'Name'
+          Value: 'PublicSubnetB'
+  PrivateSubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: !Sub '10.4.${subnetcidrBlock4}.0/20'
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs
+          Ref: 'AWS::Region'
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: 'Name'
+          Value: 'PrivateSubnetB'
+#RouteTables
+  RouteTablePublicA:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: 'Name'
+          Value: 'RTpublicA'           
+  RouteTablePrivateA:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: 'Name'
+          Value: 'RTprivateA'           
+  RouteTablePublicB:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: 'Name'
+          Value: 'RTpublicB'           
+  RouteTablePrivateB:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: 'Name'
+          Value: 'RTprivateB'           
+#RouteTable configuration
+  RoutePublicA:
+    DependsOn: GatewayAttachment
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId:
+        Ref: RouteTablePublicA
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId:
+        Ref: InternetGateway           
+  RoutePublicB:
+    DependsOn: GatewayAttachment
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId:
+        Ref: RouteTablePublicB
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId:
+        Ref: InternetGateway 
+#Subnet RouteTable Association
+  RouteTableAssociationPublicA:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId:
+        Ref: PublicSubnetA
+      RouteTableId:
+        Ref: RouteTablePublicA
+  RouteTableAssociationPrivateA:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnetA
+      RouteTableId:
+        Ref: RouteTablePrivateA
+  RouteTableAssociationPublicB:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId:
+        Ref: PublicSubnetB
+      RouteTableId:
+        Ref: RouteTablePublicB
+  RouteTableAssociationPrivateB:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnetB
+      RouteTableId:
+        Ref: RouteTablePrivateB
+#Network ACL
+  NetworkAclPublicA:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: 'Name'
+          Value: 'nacl-publicA'
+  NetworkAclPrivateA:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: 'Name'
+          Value: 'nacl-privateA'
+  NetworkAclPublicB:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: 'Name'
+          Value: 'nacl-publicB'
+  NetworkAclPrivateB:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: 'Name'
+          Value: 'nacl-privateB'
+#Network Acl Association
+  NetworkAclAssociationPublicA:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      SubnetId:
+        Ref: PublicSubnetA
+      NetworkAclId:
+        Ref: NetworkAclPublicA
+  NetworkAclAssociationPrivateA:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnetA
+      NetworkAclId:
+        Ref: NetworkAclPrivateA
+  NetworkAclAssociationPublicB:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      SubnetId:
+        Ref: PublicSubnetB
+      NetworkAclId:
+        Ref: NetworkAclPublicB
+  NetworkAclAssociationPrivateB:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnetB
+      NetworkAclId:
+        Ref: NetworkAclPrivateB
+#Network Acl Entry
+  NetworkAclPublicEntryInA:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId:
+        Ref: NetworkAclPublicA
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: Allow
+      Egress: true
+      CidrBlock: '0.0.0.0/0'
+  NetworkAclPrivateEntryInA:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId:
+        Ref: NetworkAclPrivateA
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: Allow
+      Egress: false
+      CidrBlock: '0.0.0.0/0'
+  NetworkAclPublicEntryInB:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId:
+        Ref: NetworkAclPublicB
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: Allow
+      Egress: true
+      CidrBlock: '0.0.0.0/0'
+  NetworkAclPrivateEntryInB:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId:
+        Ref: NetworkAclPrivateB
+      RuleNumber: 100
+      Protocol: -1
+      RuleAction: Allow
+      Egress: false
+      CidrBlock: '0.0.0.0/0'
+Outputs:
+  TemplateID:
+    Description: 'VPC-2az template Id'
+    Value: 'vpc/vpc-2az'
+  TemplateVersion:
+    Description: 'VPC-2az template Version'
+    Value: '__VERSION__'
+  StackName:
+    Description: 'stack name'
+    Value: !Sub '${AWS::StackName}'
+  AvailabilityZonesA:
+    Description: 'Availability ZoneA'
+    Value: !Select
+      - 0
+      - !GetAZs
+        Ref: 'AWS::Region'
+    Export:
+      Name: !Sub '${AWS::StackName}-AvailabilityZonesA'
+  AvailabilityZonesB:
+    Description: 'Availability ZoneB'
+    Value: !Select
+      - 1
+      - !GetAZs
+        Ref: 'AWS::Region'
+    Export:
+      Name: !Sub '${AWS::StackName}-AvailabilityZonesB'
+  CidrBlock:
+    Description: 'The set of IP addresses for the VPC.'
+    Value: !GetAtt 'VPC.CidrBlock'
+    Export:
+      Name: !Sub '${AWS::StackName}-CidrBlock'
+  VPC:
+    Description: 'The Custom VPC'
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VPC'
+  PublicSubnetA:
+    Description: 'Public subnet A.'
+    Value: !Ref PublicSubnetA
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetA'
+  PrivateSubnetA:
+    Description: 'Private subnet A.'
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnetA'
+  PublicSubnetB:
+    Description: 'Public subnet B.'
+    Value: !Ref PublicSubnetB
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetB'
+  PrivateSubnetB:
+    Description: 'Private subnet B.'
+    Value: !Ref PrivateSubnetB
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnetB'
+  RouteTablePublicA:
+    Description: 'Public route table A'
+    Value: !Ref RouteTablePublicA
+    Export:
+      Name: !Sub '${AWS::StackName}-RouteTablePublicA'
+  RouteTablePrivateA:
+    Description: 'Private route table A'
+    Value: !Ref RouteTablePrivateA
+    Export:
+      Name: !Sub '${AWS::StackName}-RouteTablePrivateA'
+  RouteTablePublicB:
+    Description: 'Public route table B'
+    Value: !Ref RouteTablePublicB
+    Export:
+      Name: !Sub '${AWS::StackName}-RouteTablePublicB'
+  RouteTablePrivateB:
+    Description: 'Private route table B'
+    Value: !Ref RouteTablePrivateB
+    Export:
+      Name: !Sub '${AWS::StackName}-RouteTablePrivateB'
