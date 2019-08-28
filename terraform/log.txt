@@ -1,0 +1,91 @@
+[0m[1maws_vpc.vpc: Creating...[0m
+  arn:                              "" => "<computed>"
+  assign_generated_ipv6_cidr_block: "" => "false"
+  cidr_block:                       "" => "10.0.0.0/16"
+  default_network_acl_id:           "" => "<computed>"
+  default_route_table_id:           "" => "<computed>"
+  default_security_group_id:        "" => "<computed>"
+  dhcp_options_id:                  "" => "<computed>"
+  enable_classiclink:               "" => "<computed>"
+  enable_classiclink_dns_support:   "" => "<computed>"
+  enable_dns_hostnames:             "" => "<computed>"
+  enable_dns_support:               "" => "true"
+  instance_tenancy:                 "" => "default"
+  ipv6_association_id:              "" => "<computed>"
+  ipv6_cidr_block:                  "" => "<computed>"
+  main_route_table_id:              "" => "<computed>"
+  owner_id:                         "" => "<computed>"[0m
+[0m[1maws_vpc.vpc: Still creating... (10s elapsed)[0m[0m
+[0m[1maws_vpc.vpc: Creation complete after 15s (ID: vpc-0d9ec73aa388e95b6)[0m[0m
+[0m[1maws_internet_gateway.InternetGateway: Creating...[0m
+  owner_id:  "" => "<computed>"
+  tags.%:    "0" => "1"
+  tags.Name: "" => "Igw"
+  vpc_id:    "" => "vpc-0d9ec73aa388e95b6"[0m
+[0m[1maws_subnet.publicA: Creating...[0m
+  arn:                             "" => "<computed>"
+  assign_ipv6_address_on_creation: "" => "false"
+  availability_zone:               "" => "us-east-1b"
+  availability_zone_id:            "" => "<computed>"
+  cidr_block:                      "" => "10.0.64.0/18"
+  ipv6_cidr_block:                 "" => "<computed>"
+  ipv6_cidr_block_association_id:  "" => "<computed>"
+  map_public_ip_on_launch:         "" => "true"
+  owner_id:                        "" => "<computed>"
+  tags.%:                          "" => "1"
+  tags.Name:                       "" => "publicA"
+  vpc_id:                          "" => "vpc-0d9ec73aa388e95b6"[0m
+[0m[1maws_egress_only_internet_gateway.egress: Creating...[0m
+  vpc_id: "" => "vpc-0d9ec73aa388e95b6"[0m
+[0m[1maws_route_table.publicRouteTable: Creating...[0m
+  owner_id:           "" => "<computed>"
+  propagating_vgws.#: "" => "<computed>"
+  route.#:            "" => "<computed>"
+  tags.%:             "" => "1"
+  tags.Name:          "" => "publicRouteTable"
+  vpc_id:             "" => "vpc-0d9ec73aa388e95b6"[0m
+[0m[1maws_network_acl.publicNACL: Creating...[0m
+  egress.#:     "" => "<computed>"
+  ingress.#:    "" => "<computed>"
+  owner_id:     "" => "<computed>"
+  subnet_ids.#: "" => "<computed>"
+  tags.%:       "" => "1"
+  tags.Name:    "" => "publicNACL"
+  vpc_id:       "" => "vpc-0d9ec73aa388e95b6"[0m
+[0m[1maws_egress_only_internet_gateway.egress: Creation complete after 2s (ID: eigw-0f127b8252df8e6f2)[0m[0m
+[0m[1maws_network_acl.publicNACL: Creation complete after 3s (ID: acl-0e87087afebc52d06)[0m[0m
+[0m[1maws_network_acl_rule.nacl_ruleOut: Creating...[0m
+  cidr_block:     "" => "0.0.0.0/0"
+  egress:         "" => "true"
+  network_acl_id: "" => "acl-0e87087afebc52d06"
+  protocol:       "" => "-1"
+  rule_action:    "" => "allow"
+  rule_number:    "" => "100"[0m
+[0m[1maws_network_acl_rule.nacl_ruleIn: Creating...[0m
+  cidr_block:     "" => "0.0.0.0/0"
+  egress:         "" => "false"
+  network_acl_id: "" => "acl-0e87087afebc52d06"
+  protocol:       "" => "all"
+  rule_action:    "" => "allow"
+  rule_number:    "" => "100"[0m
+[0m[1maws_route_table.publicRouteTable: Creation complete after 5s (ID: rtb-071a8af9f4faef923)[0m[0m
+[0m[1maws_route.publicRoute: Creating...[0m
+  destination_cidr_block:     "" => "0.0.0.0/0"
+  destination_prefix_list_id: "" => "<computed>"
+  egress_only_gateway_id:     "" => "<computed>"
+  gateway_id:                 "" => "<computed>"
+  instance_id:                "" => "<computed>"
+  instance_owner_id:          "" => "<computed>"
+  nat_gateway_id:             "" => "<computed>"
+  network_interface_id:       "" => "<computed>"
+  origin:                     "" => "<computed>"
+  route_table_id:             "" => "rtb-071a8af9f4faef923"
+  state:                      "" => "<computed>"[0m
+[0m[1maws_subnet.publicA: Creation complete after 7s (ID: subnet-0b140c3d3742c3ec4)[0m[0m
+[0m[1maws_route_table_association.plublicRouteAssociation: Creating...[0m
+  route_table_id: "" => "rtb-071a8af9f4faef923"
+  subnet_id:      "" => "subnet-0b140c3d3742c3ec4"[0m
+[0m[1maws_network_acl_rule.nacl_ruleIn: Creation complete after 4s (ID: nacl-2855107614)[0m[0m
+[0m[1maws_internet_gateway.InternetGateway: Creation complete after 7s (ID: igw-034ca7b984cf4c8a7)[0m[0m
+[0m[1maws_network_acl_rule.nacl_ruleOut: Creation complete after 4s (ID: nacl-301094534)[0m[0m
+[0m[1maws_route_table_association.plublicRouteAssociation: Creation complete after 1s (ID: rtbassoc-00d97244d39afa08d)[0m[0m
