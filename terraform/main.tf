@@ -35,13 +35,10 @@ resource "aws_route_table" "publicRouteTable" {
 	}
 }
 
-resource "aws_egress_only_internet_gateway" "egress" {
-	vpc_id = "${aws_vpc.vpc.id}"
-}
-
 resource "aws_route" "publicRoute" {
 	route_table_id = "${aws_route_table.publicRouteTable.id}"
 	destination_cidr_block = "0.0.0.0/0"
+	gateway_id = "${aws_internet_gateway.InternetGateway.id}"
 	depends_on = ["aws_route_table.publicRouteTable"]
 }
 
@@ -62,7 +59,7 @@ resource "aws_network_acl_rule" "nacl_ruleIn" {
 	network_acl_id = "${aws_network_acl.publicNACL.id}"
 	rule_number = 100
 	egress = false
-	protocol = "all"
+	protocol = -1
 	rule_action = "allow"
 	cidr_block = "0.0.0.0/0"
 }
